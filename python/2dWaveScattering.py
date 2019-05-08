@@ -250,7 +250,7 @@ normalization = cm.colors.Normalize(vmax=0.25,vmin=0)
 def animate(i):
     ax.clear()
     ax.contourf(xmat,ymat,np.abs(psi[i,:,:]),norm=normalization,cmap=plt.get_cmap(cmapName))
-    ax.axis("equal")
+    ax.set_aspect("equal","box")
 
 anim = ani.FuncAnimation(fig,animate,N,interval=videoInterval*1e+3,blit=False,repeat=True)
 anim.save("wave-2d-reflector.gif")
