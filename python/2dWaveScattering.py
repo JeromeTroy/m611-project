@@ -21,7 +21,7 @@ cmapName = "viridis"
 
 # simulation parameters
 eps = 2.0/10        # size of initial condition 
-tol = 1e-3          # allowed tolerances
+tol = 1e-2          # allowed tolerances
 videoInterval = 1e-4    # ms
 
 
@@ -237,14 +237,14 @@ def parabolicReflector(x,y,lam=0.5):
     return levels
 
 # elliptic reflector
-def ellipticReflector(x,y,lam=0.5,alpha=3):
-    a = lam**2 * (1 + alpha)
-    b = (lam**2 + a**2)/(2 * lam)
-    
-    levels = 1/a**2 * np.power(x,2) + 1/b**2 * np.power(y,2) - 1
+def ellipticReflector(x,y,focal=1,alpha=0.2,beta=1):
+    levels = (1/alpha)**2 * np.power(x,2) + (1/beta)**2 * np.power(y - focal/2,2) - 1
     return levels
 
-# calculating efficiency
+def noReflector(x,y):
+    return np.ones(np.shape(x))
+
+
 
 
 # script
@@ -259,13 +259,13 @@ Dxx = buildDiff2MatOrder2(x)
 Dyy = buildDiff2MatOrder2(y)
 
 discreteParams = [Mx,My,N]
-derivativeParams = [Dxx,Dyy,ellipticReflector,space,tol]
+derivativeParams = [Dxx,Dyy,noReflector,space,tol]
 mainParams = [discreteParams,derivativeParams]
 
 [t,psi] = verlet(secondDerivative,tspan,psiInit,mainParams)
 
 fig,ax = plt.subplots()
-ax.contour(xmat,ymat,reflectorLocation(space,ellipticReflector))
+ax.contour(xmat,ymat,reflectorLocation(space,noReflector))
 ax.set_aspect("equal","box")
 
 # plotting
@@ -273,15 +273,31 @@ fig,ax = plt.subplots()
 
 normalization = cm.colors.Normalize(vmax=0.25,vmin=0)
 
+lam = 0.5
+xplt = np.linspace(-lam,lam,100)
+
+plotTo = 100
+psiPlot = psi[:-plotTo,:,:]
+
+focal = 1
+alpha = 0.2
+beta = 1
+thetamin = np.arcsin(-focal/(2*beta))
+theta = np.linspace(thetamin,-np.pi-thetamin,100)
+x = alpha *np.cos(theta)
+y = beta * np.sin(theta) + focal/2
+
 # animation
 def animate(i):
     ax.clear()
-    ax.contourf(xmat,ymat,np.abs(psi[i,:,:]),norm=normalization,cmap=plt.get_cmap(cmapName))
+    ax.contourf(xmat,ymat,np.abs(psiPlot[i,:,:]),norm=normalization,cmap=plt.get_cmap(cmapName))
+    #plt.plot(xplt,np.power(xplt,2)/(2*lam) - lam/2,'k')
+    #plt.plot(x,y,'k')
     ax.set_aspect("equal","box")
 
 def generateAnimation(fileName):
-    anim = ani.FuncAnimation(fig,animate,N,interval=videoInterval*1e+3,blit=False,repeat=True)
-    anim.save("test.gif", writer="imagemagick")
+    anim = ani.FuncAnimation(fig,animate,N-plotTo,interval=videoInterval*1e+3,blit=False,repeat=True)
+    anim.save(fileName, writer="imagemagick")
 
 # initial condition
 fig,ax = plt.subplots()
@@ -289,5 +305,13 @@ ax.contourf(xmat,ymat,psi[0,:,:],norm=normalization,cmap=plt.get_cmap(cmapName))
 ax.set_aspect("equal","box")
 ax.set_title("Initial Condition")
 
+# calculating efficiency
+psiTot = tau/t[-plotTo] * np.sum(np.abs(psi[:-plotTo,:,:]),axis=0)
 
-generateAnimation("test.gif")
+fig,ax = plt.subplots()
+ax.contourf(xmat,ymat,psiTot)
+ax.set_aspect("equal","box")
+ax.set_title("Average Psi distribution")
+plt.savefig("no-reflector-total-abs.png")
+#generateAnimation("no-reflector.gif")
+
