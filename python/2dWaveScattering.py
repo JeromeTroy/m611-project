@@ -137,7 +137,7 @@ def secondDerivative(t,psi,params):
     tol = params[4]
     
     # reflection
-    psi[np.abs(arcfun(x)) < tol] = 0
+    psi[np.abs(reflectorLocation(x,arcfun)) < tol] = 0
     
     # compute laplacian
     laplacian = np.matmul(Dxx,psi) + np.matmul(psi,Dyy.T)
@@ -189,12 +189,14 @@ def verlet(fun,tspan,psiInit,params):
     
     return [t,psi]
     
-def reflectorLocation(x):
+def reflectorLocation(x,locationFun):
     """
     function describing location and shape of reflector
     f(x) = 0, note x is a vector
     Input:
         x - vector of x and y coordinates
+        locationFun - function dictating location
+            of form f(x,y) = 0
     Output:
         f(x)
     """
@@ -213,13 +215,37 @@ def reflectorLocation(x):
     #tmp = ymat - (np.power(xmat,2)/(2*lam) - lam/2)
     
     # ellipse
-    alpha = 3           # scale parameter for ellipse
-    a = lam**2 * (1 + alpha)
-    b = (lam**2 + a**2)/(2*lam)
+    #alpha = 3           # scale parameter for ellipse
+    #a = lam**2 * (1 + alpha)
+    #b = (lam**2 + a**2)/(2*lam)
     
-    tmp = 1/a**2 * np.power(xmat,2) + 1/b**2 * np.power(ymat - np.sqrt(b**2 - a**2),2) - 1
-    tmp[ymat > 0] = 1          # ensuring only occurs for y < 0
-    return tmp
+    #tmp = 1/a**2 * np.power(xmat,2) + 1/b**2 * np.power(ymat - np.sqrt(b**2 - a**2),2) - 1
+    #tmp[ymat > 0] = 1          # ensuring only occurs for y < 0
+    
+    levels = locationFun(xmat,ymat)
+    levels[ymat > 0] = 10
+    return levels
+
+# semicircle reflector
+def semiCircleReflector(x,y,radius=0.5):
+    levels =  np.power(x,2) + np.power(y,2) - np.power(radius,2)
+    return levels
+
+# parabolic reflector
+def parabolicReflector(x,y,lam=0.5):
+    levels = y - (np.power(x,2)/(2 * lam) - lam/2)
+    return levels
+
+# elliptic reflector
+def ellipticReflector(x,y,lam=0.5,alpha=3):
+    a = lam**2 * (1 + alpha)
+    b = (lam**2 + a**2)/(2 * lam)
+    
+    levels = 1/a**2 * np.power(x,2) + 1/b**2 * np.power(y,2) - 1
+    return levels
+
+# calculating efficiency
+
 
 # script
 
@@ -233,13 +259,14 @@ Dxx = buildDiff2MatOrder2(x)
 Dyy = buildDiff2MatOrder2(y)
 
 discreteParams = [Mx,My,N]
-derivativeParams = [Dxx,Dyy,reflectorLocation,space,tol]
+derivativeParams = [Dxx,Dyy,ellipticReflector,space,tol]
 mainParams = [discreteParams,derivativeParams]
 
 [t,psi] = verlet(secondDerivative,tspan,psiInit,mainParams)
 
-plt.figure()
-plt.contour(xmat,ymat,reflectorLocation(space))
+fig,ax = plt.subplots()
+ax.contour(xmat,ymat,reflectorLocation(space,ellipticReflector))
+ax.set_aspect("equal","box")
 
 # plotting
 fig,ax = plt.subplots()
@@ -252,13 +279,15 @@ def animate(i):
     ax.contourf(xmat,ymat,np.abs(psi[i,:,:]),norm=normalization,cmap=plt.get_cmap(cmapName))
     ax.set_aspect("equal","box")
 
-anim = ani.FuncAnimation(fig,animate,N,interval=videoInterval*1e+3,blit=False,repeat=True)
-anim.save("wave-2d-reflector.gif")
+def generateAnimation(fileName):
+    anim = ani.FuncAnimation(fig,animate,N,interval=videoInterval*1e+3,blit=False,repeat=True)
+    anim.save("test.gif", writer="imagemagick")
 
 # initial condition
-plt.figure()
-plt.contourf(xmat,ymat,psi[0,:,:],norm=normalization,cmap=plt.get_cmap(cmapName))
-plt.title("Initial Condition")
+fig,ax = plt.subplots()
+ax.contourf(xmat,ymat,psi[0,:,:],norm=normalization,cmap=plt.get_cmap(cmapName))
+ax.set_aspect("equal","box")
+ax.set_title("Initial Condition")
 
 
-
+generateAnimation("test.gif")

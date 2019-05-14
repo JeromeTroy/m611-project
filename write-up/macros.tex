@@ -1,5 +1,6 @@
 \usepackage{amsmath,amssymb,amsthm,bm}
 \usepackage{graphicx}
+\usepackage{xifthen}
 
 \newcommand{\der}[3][1]{
 	\frac{{\text{d}^{
@@ -22,3 +23,7 @@
 	}
 	}
 }
+
+\newcommand{\R}{\mathbb{R}}
+
+\renewcommand{\vec}[1]{\bm{#1}}

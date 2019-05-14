@@ -1,11 +1,11 @@
-documentclass{article}
+\documentclass{article}
 
 \input{macros}
 
 \title{Numerical Simulation of Wave Scattering Off Antenna}
 \author{Jerome \\
 University of Delaware, Department of Mathematical Sciences}
-\date
+\date{}
 
 \begin{document}
 
@@ -17,12 +17,31 @@ University of Delaware, Department of Mathematical Sciences}
 
 \section{Introduction}
 
+The goal in this project is to solve the following 2 dimensional equation:
+
 \begin{equation}
   \label{eq:wave-eq-unscaled}
-  c^2 \nabla^2 \psi = \pder[2]{\psi}{\tilde{t}}
+  \begin{split}
+  c^2 \nabla^2 \psi & = \pder[2]{\psi}{\tilde{t}} \\
+  x \in \Omega & = \left[-X,X\right] \times \left[-Y,Y\right],
+  t \in \left[0,T\right] \\
+  \left.\psi\right|_{\partial \Omega} = 0, & \quad
+  \psi(\vec{x},0) = f(\vec{x}), \quad \pder{\psi}{t}(\vec{x},0) = g(\vec{x})
+  \end{split}
 \end{equation}
 
 Where $c > 0$ is the speed of propagation of the wave.
+We will solve this equation in the presence of a reflecting antenna.
+The antenna will be an arc, in $\R^2$ represented by $A(x,y) = 0$.
+Since the antenna will be reflecting, this implements a further condition on
+$\psi$:
+
+$$\psi(x,y,t) = 0 \quad \text{on} \quad A(x,y) = 0$$
+
+This reflection is what causes the scattering and so generates the
+beam pattern of the antenna.
+Our goal is to calculate this beam pattern given the antenna shape.
+
 For normalization purposes, we can let $t = \frac{1}{c}\tilde{t}$, which
 reduces Eq. \ref{eq:wave-eq-unscaled} to
 
@@ -30,7 +49,141 @@ reduces Eq. \ref{eq:wave-eq-unscaled} to
   \label{eq:wave-eq}
   \nabla^2 \psi = \pder[2]{\psi}{t}
 \end{equation}
+
+Note the boundaries on $t$ in Eq. \ref{eq:wave-eq-unscaled} have no "$\sim$".
+This is because once $t$ is normalized, we may define new parameters which
+take into account this normalization.
+
+In an analytic solution, we would allow the boundaries of the problem to be
+at infinity, as this is the physical case.  In a simulation however this is
+not possible.  To deal with this we will choose $x \in \left[-X,X\right]$ and
+$y \in \left[-Y,Y\right]$ such that the wave front will not reach the
+boundary within the allotted solution time ($t \in \left[0,T\right]$)
+
 \section{Methods}
+
+\subsection{Discretization}
+
+We discretize the system in accordance with Method of Lines (MoL).  We choose
+$M_x$ points in the $x$ direction and $M_y$ points in the $y$ direction.
+This gives a spacial discretization of
+
+$$x_i = -X + \frac{2X}{M_x}i, \quad i = 0, 1, ..., M_x, \quad
+y_j = -Y + \frac{2Y}{M_y}j, \quad j = 0, 1, ..., M_y$$
+
+For simplicity we will denote $h_x = \frac{2X}{M_x}$ and similarly for $h_y$.
+These are the spacings in the $x$ and $y$ directions respectively.
+With the spacial discretization, we transform $\psi(x,y,t)$ into a matrix
+which is a function only of $t$ such that
+
+$$\Psi_{ij}(t) = \psi(x_i,y_j,t)$$
+
+To approximate the spacial derivatives, we will use a second order formula.
+For any point on the interior, $1 \leq i \leq M_x - 1$
+and $1 \leq j \leq M_y - 1$, all neighbors exist.
+This enables the approximation
+
+$$\left.\pder[2]{\psi}{x}\right|_{x_i} =
+\frac{1}{h_x^2} \left(\Psi_{i-1,j} - 2 \Psi_{i,j} + \Psi_{i+1,j}\right)
++ O(h_x^2), \quad
+\left.\pder[2]{\psi}{y}\right|_{y_j} = \frac{1}{h_y^2}
+\left(\Psi_{i,j-1} - 2 \Psi_{i,j} + \Psi_{i,j+1}\right) + O(h_y^2)$$
+
+For the end points, let us consider $\pder[2]{\psi}{x}$ at $x_0$.
+Then we can construct the following:
+
+$$\left.\pder[2]{\psi}{x}\right|_{x_0} =
+\frac{1}{h_x^2}\left(
+\Psi_{i,j} - \frac{5}{2} \Psi_{i+1,j} +
+2 \Psi_{i+2,j} - \frac{1}{2} \Psi_{i+3,j}\right) + O(h_x^2)$$
+
+A similar formula may be constructed for $\pder[2]{\psi}{x}$ at $x_{M_x}$
+as well as for the $y$ counterparts.  Putting this information together
+we can construct an operator for $\Psi$ which will construct the spacial partial
+derivatives
+
+\begin{equation}
+  \label{eq:differentiation-matrix}
+  \pder[2]{\psi}{x} \approx D_xx \Psi, \quad D_xx = \frac{1}{h_x^2}
+  \begin{bmatrix}
+  1 & -\frac{5}{2} & 2 & -\frac{1}{2} \\
+  1 & -2 & 1 \\
+  & 1 & -2 & 1 \\
+  & & \ddots & \ddots & \ddots \\
+  & & & 1 & -2 & 1 \\
+  & & \frac{1}{2} & -2 & \frac{5}{2} & -1 \end{bmatrix}
+\end{equation}
+
+With a similar construction for $D_{yy}$.  It should be noted however that
+while $D_{xx}$ needs to operate on the rows of $\Psi$ (as this is where $x$
+changes), $D_{yy}$ must therefore operate on the columns.  Therefore we have
+
+$$\pder[2]{\psi}{y} \approx D_{yy} \Psi^T$$
+
+However since we will add the two together for the Laplacian, we want $\Psi$ to
+have the same orientation in each equation.  Therefore taking the
+transpose of the above and summing gives an equation for the
+Laplacian of $\psi$:
+
+\begin{equation}
+  \label{eq:discrete-laplacian}
+  \nabla^2 \psi \approx D_{xx} \Psi + \Psi D_{yy}^T
+\end{equation}
+
+Finally putting this together with Eq. \ref{eq:wave-eq} gives:
+
+\begin{equation}
+  \label{eq:method-lines-ode}
+  \der[2]{}{t} \Psi = D_{xx} \Psi(t) + \Psi(t) D_{yy}^T
+\end{equation}
+
+This now gives a second order ODE system which can be integrated.
+
+\subsection{ODE Integration}
+
+To integrate Eq. \ref{eq:method-lines-ode} we will use the
+St\"ormer Verlet method.
+
+The Verlet method is defined as follows:
+suppose $\der[2]{}{t} u = f(t,u)$, with $t \in \left[0,T\right]$ and the
+following are initial conditions:
+$u(0) = u_0, u'(0) = v_0$.  We use $N$ time nodes, and define
+$\tau = \frac{T}{N}$.  Let $u_k \approx u(t_k)$ where $t_k = k\tau$,
+$k = 0, 1, ..., N$. Then the Verlet method proceeds as follows:
+
+\begin{itemize}
+  \item Set $u_1 = u_0 + \tau v_0 + \frac{\tau^2}{2} f(0,u_0)$
+  \item iterate by
+  $$u_{k+1} = 2u_k - u_{k-1} + \tau^2 f(t_k,u_k)$$
+\end{itemize}
+
+It should be noted that the Verlet method is second order accurate
+\textbf{citation needed}.  We can apply this to our problem given that
+$\psi(x,y,0) = f(x,y)$ and $\pder{\psi}{t}(x,y,0) = g(x,y)$.  We start
+by creating matrix forms of $f$ and $g$ respectively:
+
+$$F_{ij} = f(x_i,y_j), \quad G_{ij} = g(x_i,y_j)$$
+
+Then we apply the Verlet Method.  Let $\Psi^{(k)} \approx \Psi(t_k)$:
+
+\begin{equation}
+    \label{eq:verlet-integration}
+    \begin{split}
+      \Psi^{(0)} & = F \\
+      \Psi^{(1)} & = F + \tau G +
+      \frac{\tau^2}{2} \left(D_{xx} F + F D_{yy}^T\right) \\
+      \Psi^{(k+1)} & = 2\Psi^{(k)} - \Psi^{(k-1)} +
+      \tau^2 \left(D_{xx} \Psi^{(k)} + \Psi^{(k)}D_{yy}^T \right)
+    \end{split}
+\end{equation}
+
+Where again $\tau = \frac{T}{N}$.  At each Verlet step, we will set
+$\psi = 0$ along $A(x,y) = 0$.  This will induce a reflection from the Antenna
+and therefore allow us to calculate the beam pattern.  It should be noted that
+due to the discretization in $x$ and $y$, we may not have exactly $A(x,y) = 0$
+where intended.  To deal with this, we allow a tolerance on the value $A$.
+If $|A| < \epsilon$, then we say $A \approx 0$ and force a reflection.
+
 
 \section{Results}
 

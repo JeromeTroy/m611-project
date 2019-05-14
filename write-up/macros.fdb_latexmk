@@ -1,0 +1,9 @@
+# Fdb version 3
+["pdflatex"] 1557806296 "macros.tex" "macros.pdf" "macros" 1557806297
+  "/home/jerome/.texlive/texmf-var/web2c/pdftex/pdflatex.fmt" 1557804528 7919196 652c6ae2874cc8815bd8b993eabc58d6 ""
+  "/usr/share/texmf-dist/web2c/texmf.cnf" 1550406775 33301 a3134070eacafb10b1f371612ce2650d ""
+  "macros.aux" 1557806296 8 a94a2480d3289e625eea47cd1b285758 ""
+  "macros.tex" 1557789034 371 66944a88161410916eb4fe29dd4704f1 ""
+  (generated)
+  "macros.log"
+  "macros.pdf"
