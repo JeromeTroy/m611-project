@@ -1,0 +1,13 @@
+Want to build matrix $D_{xx}$ such that $D_{xx} \Psi(t) = \pder[2]{}{x} \psi (\vec{x},t) + O(h^2)$
+
+Interior points:
+
+$$af(x - h) + b f(x) + cf(x + h) = f''(x) + O(h^2)$$
+
+$$\implies a = \frac{2}{h^2}, \quad b = \frac{-4}{h^2}, \quad c = \frac{2}{h^2}$$
+
+End points:
+
+$$a f(x) + bf(x + h) + cf(x + 2h) + df(x + 3h) = f''(x) + O(h^2)$$
+
+$$\implies a = \frac{2}{h^2}, \quad b = -\frac{5}{h^2}, \quad c = \frac{4}{h^2}, \quad d = -\frac{1}{h^2}$$

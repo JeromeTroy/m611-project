@@ -1,0 +1,17 @@
+How do we solve 
+
+$$\der[2]{}{t} u = f(t,u), \quad u(0) = u_0, \quad u'(0) = v_0, \quad t \geq 0$$
+
+St\"ormer Verlet Integration:
+
+$t_k = k\tau$, $\tau$ time step size, then let $u_k \approx u(t_k)$
+
+Define:
+
+$$u_1 = u_0 + \tau v_0 + \frac{\tau^2}{2} f(t_0,u_0)$$
+
+Then iterate via:
+
+$$u_{k+1} = 2u_{k} - u_{k-1} + \tau^2 f(t_k,u_k), \quad k \geq 1$$
+
+Verlet's method is $O(\tau^2)$ \textbf{citation needed}

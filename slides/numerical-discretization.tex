@@ -1,0 +1,20 @@
+Problem: we cannot simulate an infinite domain!
+
+Will let domain be large enough to minimize reflections off boundaries
+
+$x \in \left[-X,X\right], \quad y \in \left[-Y,Y\right]$
+
+Number of nodes: $M_x, M_y$ in $x$ and $y$ directions respectively
+
+$x_i = -X + ih_x, \quad h_x = \frac{2X}{M_x}, \quad i = 0, 1, ..., M_x$, 
+and $y_j = -Y + jh_y, \quad h_y = \frac{2Y}{M_y}, \quad j = 0, 1, ..., M_y$
+
+$$\R^{M_x+1\times M_y+1} \ni \Psi_{ij}(t) \approx \psi(x_i, y_j, t) \implies \der[2]{}{t} \Psi = \nabla^2 \Psi$$
+
+Differentiation Matrices!
+
+$$\nabla^2 \Psi = \left(\pder[2]{}{x} + \pder[2]{}{y}\right) \Psi \mapsto D_{xx} \Psi + \Psi D^T_{yy}$$
+
+Solving 
+
+$$\der[2]{}{t} \Psi = D_{xx} \Psi + \Psi D^T_{yy}, \quad \left.\Psi\right|_{S_A} = 0$$

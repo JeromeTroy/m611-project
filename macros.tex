@@ -1,0 +1,45 @@
+% packages
+\usepackage{graphicx} % Allows including images
+\usepackage{booktabs} % Allows the use of \toprule, \midrule and \bottomrule in tables
+%\usepackage {tikz}
+\usepackage{tkz-graph}
+\usepackage{amsmath,amssymb,amsthm,bm}      % math stuff
+\usepackage{animate}                        % animations
+
+\GraphInit[vstyle = Shade]
+\tikzset{
+  LabelStyle/.style = { rectangle, rounded corners, draw,
+                        minimum width = 2em, fill = yellow!50,
+                        text = red, font = \bfseries },
+  VertexStyle/.append style = { inner sep=5pt,
+                                font = \normalsize\bfseries},
+  EdgeStyle/.append style = {->, bend left} }
+\usetikzlibrary {positioning}
+%\usepackage {xcolor}
+\definecolor {processblue}{cmyk}{0.96,0,0,0}
+
+% better derivatives
+\newcommand{\der}[3][1]{
+	\frac{{\text{d}^{
+		\ifthenelse{\equal{#1}{1}}{}{\,#1}
+	}
+	{#2} }}
+	{\text{d} {#3}^{
+		\ifthenelse{\equal{#1}{1}}{}{#1}
+	}
+	}
+}
+
+\newcommand{\pder}[3][1]{
+	\frac{{\partial^{
+		\ifthenelse{\equal{#1}{1}}{}{\,#1}
+	}
+	{#2}}}
+	{\partial {#3}^{
+		\ifthenelse{\equal{#1}{1}}{}{#1}
+	}
+	}
+}
+
+\renewcommand{\vec}[1]{\bm{#1}}         % bold vectors
+\newcommand{\R}{\mathbb{R}}             % set of real numbers
