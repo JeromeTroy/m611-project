@@ -5,7 +5,7 @@ Created on Mon May  6 11:04:08 2019
 
 @author: jrtroy
 
-This project simulates the 2 d scattering of a wave source off a 
+This project simulates the 2 d scattering of a wave source off a
 reflector disk in simulation of radar and accoustic antennae.
 """
 
@@ -20,7 +20,7 @@ from matplotlib import cm
 cmapName = "viridis"
 
 # simulation parameters
-eps = 2.0/10        # size of initial condition 
+eps = 2.0/10        # size of initial condition
 tol = 1e-2          # allowed tolerances
 videoInterval = 1e-4    # ms
 
@@ -34,10 +34,10 @@ yspan = [-Y,Y]
 tspan = [0,2]
 
 
-# x and y nodes 
+# x and y nodes
 Mx = 300
 My = 300
-N = 300        # t nodes 
+N = 300        # t nodes
 
 # construction of spacial grid
 x = np.linspace(xspan[0],xspan[1],Mx)
@@ -63,48 +63,48 @@ print("Wave speed = " + str(waveSpeed))
 def initialCondition(space,size):
     """
     Initial condition for wave simulation
-    Input: 
+    Input:
         space = [xmat, ymat]    list of space matrices
         size    (scalar)        size of the initial spike
     Output:
         array of same dimensions of space - one for initial condition,
         and one for the initial 'velocities'
-        Of form     (1/e^2) (|x|^2 - e^2)^2
+        Of form     (1/e^4) (|x|^2 - e^2)^2
     """
     xmat = space[0]
     ymat = space[1]
-    
+
     # functional construction
     psiInit = np.power(xmat,2) + np.power(ymat,2) - np.power(size,2)
     psiInit = np.divide(np.power(psiInit,2),np.power(size,4))
-    
+
     # enforce is zero outside of range
     psiInit[np.power(xmat,2) + np.power(ymat,2) > size**2] = 0
-    
+
     # 'velocities'
     psiInitPrime = np.zeros(np.shape(psiInit))
-    
+
     return [psiInit,psiInitPrime]
 
 # differentiation matrices
 def buildDiff2MatOrder2(x):
     """Building the second order differentiation matrix Dxx
-    Input: 
+    Input:
         x   vector (length m) of x coordinates
     Output:
         m x m matrix for second derivative
     """
     size = len(x)
     h = x[1] - x[0]
-    
+
     # construction through diagonals
     Dxx = np.diagflat(-2*np.ones([size,1]))
     Dxx += np.diagflat(np.ones([size-1,1]),-1) + np.diagflat(np.ones([size-1,1]),1)
-    
+
     # fixing first and last rows
     Dxx[0,:4] = [1, -2.5, 2, -0.5]
     Dxx[-1,-4:] = [0.5, -2, 2.5, -1]
-    
+
     # scaling
     Dxx *= 2/np.power(h,2)
     return Dxx
@@ -135,15 +135,15 @@ def secondDerivative(t,psi,params):
     arcfun = params[2]
     x = params[3]
     tol = params[4]
-    
+
     # reflection
     psi[np.abs(reflectorLocation(x,arcfun)) < tol] = 0
-    
+
     # compute laplacian
     laplacian = np.matmul(Dxx,psi) + np.matmul(psi,Dyy.T)
-    
+
     return laplacian
-    
+
 # interation method
 def verlet(fun,tspan,psiInit,params):
     """
@@ -158,37 +158,37 @@ def verlet(fun,tspan,psiInit,params):
                     funParams   parameters for second derivative function
                     ]
     Output:
-        t - time values for evaluation and 
+        t - time values for evaluation and
         Large array of psi values at all x values and t values
     """
-    
+
     # unpacking
     Mx = params[0][0]
     My = params[0][1]
     N = params[0][2]
     funParams = params[1]
-    
+
     # construct time vector
     t = np.linspace(tspan[0],tspan[1],N)
     tau = t[1] - t[0]       # time spacing
-    
+
     # dimensions for psi array
     dims = np.shape(psiInit[0])
     dims = np.insert(dims,0,N)
-    
+
     # allocate space for psi
     psi = np.zeros(dims)
     psi[0,:,:] = psiInit[0]         # initial condition
-    
+
     # starting step
     psi[1,:,:] = psiInit[0] + tau * psiInit[1] + np.power(tau,2)/2 * fun(t,psiInit[0],funParams)
-    
+
     # main iteration
     for j in range(1,len(t)-1):
         psi[j+1,:,:] = 2*psi[j,:,:] - psi[j-1,:,:] + np.power(tau,2) * fun(t,psi[j,:,:],funParams)
-    
+
     return [t,psi]
-    
+
 def reflectorLocation(x,locationFun):
     """
     function describing location and shape of reflector
@@ -203,25 +203,25 @@ def reflectorLocation(x,locationFun):
     # unpacking
     xmat = x[0]
     ymat = x[1]
-    
+
     lam = 0.5
-    
+
     # construction of function
-    
+
     # semicircle
     #tmp = np.power(xmat,2) + np.power(ymat,2) - np.power(lam,2)
-    
+
     # parabola
     #tmp = ymat - (np.power(xmat,2)/(2*lam) - lam/2)
-    
+
     # ellipse
     #alpha = 3           # scale parameter for ellipse
     #a = lam**2 * (1 + alpha)
     #b = (lam**2 + a**2)/(2*lam)
-    
+
     #tmp = 1/a**2 * np.power(xmat,2) + 1/b**2 * np.power(ymat - np.sqrt(b**2 - a**2),2) - 1
     #tmp[ymat > 0] = 1          # ensuring only occurs for y < 0
-    
+
     levels = locationFun(xmat,ymat)
     levels[ymat > 0] = 10
     return levels
@@ -314,4 +314,3 @@ ax.set_aspect("equal","box")
 ax.set_title("Average Psi distribution")
 plt.savefig("no-reflector-total-abs.png")
 #generateAnimation("no-reflector.gif")
-
