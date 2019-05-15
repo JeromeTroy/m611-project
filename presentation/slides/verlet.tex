@@ -1,4 +1,4 @@
-How do we solve 
+How do we solve
 
 $$\der[2]{}{t} u = f(t,u), \quad u(0) = u_0, \quad u'(0) = v_0, \quad t \geq 0$$
 
@@ -14,4 +14,6 @@ Then iterate via:
 
 $$u_{k+1} = 2u_{k} - u_{k-1} + \tau^2 f(t_k,u_k), \quad k \geq 1$$
 
-Verlet's method is $O(\tau^2)$ \textbf{citation needed}
+Verlet's method can be shown to be $O(\tau^2)$ \cite{md-verlet}
+
+It also has the added benefit of conserving energy

@@ -1,0 +1,13 @@
+\begin{thebibliography}{1}
+
+\bibitem{md-verlet}
+B.~Leimkuhler and C.~Matthews, {\em Molecular Dynamics with Deterministic and
+  Stochastic Numerical Methods}, ch.~2. Numerical Integrators, pp.~67 -- 70.
+\newblock Springer, 2015.
+
+\bibitem{fnc-driscoll}
+T.~Driscoll and R.~Braun, {\em Fundamentals of Numerical Computation}, ch.~12.
+  Advection Equations, pp.~548--552.
+\newblock Tobin Driscoll and Richard Braun, 2017.
+
+\end{thebibliography}
