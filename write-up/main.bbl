@@ -10,4 +10,8 @@ T.~Driscoll and R.~Braun, {\em Fundamentals of Numerical Computation}, ch.~12.
   Advection Equations, pp.~548--552.
 \newblock Tobin Driscoll and Richard Braun, 2017.
 
+\bibitem{class-book}
+A.~Quarteroni, R.~Sacco, and F.~Saler, {\em Numerical Mathematics}.
+\newblock New York, NY: Springer, 2~ed.
+
 \end{thebibliography}
